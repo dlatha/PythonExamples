@@ -9,8 +9,8 @@ class Getnewid(object):
  
  def get_newzoneid(self):
         config = {
-        'user': 'xxx',
-            'password': 'xxxx',
+        'user': 'root',
+            'password': 'maddykrish',
                 'host': '127.0.0.1',
                 'database': 'zone',
                 'raise_on_warnings': True,

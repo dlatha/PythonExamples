@@ -4,18 +4,21 @@ import time
 import random
 import requests
 import xml.etree.ElementTree as ET
+from getnewzone_id import Getnewid
 
-class mojia_adcall(Thread):
-    def __init__(self,val,zone,user_agent,maddy):
+class mojiva_adcall(object):
+    def __init__(self,adcall,zone,user_agent,model_name,brand_name,maddy):
         ''' Constructor. '''
-        Thread.__init__(self)
-        self.val=val
+        self.adcall=adcall
         self.zone = zone
         self.user_agent = user_agent
+        self.brand_name=brand_name
+        self.model_name=model_name
         self.maddy=maddy
+        self.xmlfile="adcall.xml"
 
-    def run(self):
-        response = requests.get(self.val)
+    def create_xml(self):
+        response = requests.get(self.adcall)
         content = str(response.content)
         root = ET.fromstring(content)
         
@@ -29,8 +32,7 @@ class mojia_adcall(Thread):
             words = img.split('&icon=')
 #        print('Calling %d times in thread %s' % (self.v.value,self.getName()))
 
-        ET.SubElement(maddy,"\n")
-        ad = ET.SubElement(maddy,"ad")
+        ad = ET.SubElement(self.maddy,"ad")
         #ad.set("id",str(self.v.value))
 
         url_ele = ET.SubElement(ad,"url")
@@ -39,20 +41,15 @@ class mojia_adcall(Thread):
         img_ele = ET.SubElement(ad,"img")
         img_ele.text = str(img)
         
-        
-        tree = ET.ElementTree(maddy)
-        tree.write("adcall.xml")
+        img_ele = ET.SubElement(ad,"ua")
+        img_ele.text = str(self.user_agent)
 
-if __name__ == '__main__':
-    # Declare objects of MyThread class
-    zone = 85
-    url = "http://ads.mocean.mobi/ad?zone=" + str(zone) +"&key=3&type=2"
-    user_agent="user_agent"
-    maddy = ET.Element("maddy")
-    
-    myThreadOb = mojia_adcall(url,zone,user_agent,maddy)
-    myThreadOb.setName("first")
-    myThreadOb.start()
-    myThreadOb.join()
-    print('Main Terminating...')
+        img_ele = ET.SubElement(ad,"model_name")
+        img_ele.text = str(self.model_name)
 
+        img_ele = ET.SubElement(ad,"brand_name")
+        img_ele.text = str(self.brand_name)
+
+        tree = ET.ElementTree(self.maddy)
+        tree.write(self.xmlfile)
+        return self.xmlfile
