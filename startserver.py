@@ -5,6 +5,7 @@ from cgi import parse_qs, escape
 from wurfl_cloud import Cloud as WurflCloud
 from wurfl_cloud import utils
 import mysql.connector
+from getnewzone_id import Getnewid
 
 
 
@@ -33,42 +34,19 @@ def application(environ, start_response):
     client = WurflCloud(config, cache)
     
     device = client(ua, capabilities=["ux_full_desktop", "model_name", "brand_name"])
+    
     user_ag='unknown'
     for i in device:
         if str(i)=='id':
             user_ag=str(device[i])
+
+    #get the new zone ID from teh old zone ID
     
-    # connect to the database to get the zone_id
-    config = {
-    'user': 'root',
-    'password': 'maddykrish',
-    'host': '127.0.0.1',
-    'database': 'zone',
-    'raise_on_warnings': True,
-    }
+    new_zoneid = Getnewid(zone)
+    zone = new_zoneid.get_newzoneid()
+
+    response_body = html % (zone or 'Empty', ip or 'Empty',user_ag or 'Empty')
     
-    conn = mysql.connector.connect(**config)
-    cursor = conn.cursor()
-
-    select_zone = ("select new_id from zone where old_id=%s")
-
-    cursor.execute(select_zone,(zone,))
-
-    rows = cursor.fetchall()
-
-    new_zoneid = get_newzoneid(self,zone)
-    print "*************************" + new_zoneid
-
-    if not rows:
-        response_body = 'Invalid data'
-    for row in rows:
-        response_body = html % (str(row[0]) or 'Empty', ip or 'Empty',user_ag or 'Empty')
-    
-    conn.commit()
-
-    cursor.close()
-    conn.close()
-
     status = '200 OK'
 
     # Now content type is text/html
@@ -80,30 +58,3 @@ def application(environ, start_response):
 httpd = make_server('localhost', 8051, application)
 httpd.serve_forever()
 
-def get_newzoneid(self,zone):
-    config = {
-        'user': 'root',
-            'password': 'maddykrish',
-                'host': '127.0.0.1',
-                'database': 'zone',
-                'raise_on_warnings': True,
-        }
-    conn = mysql.connector.connect(**config)
-    cursor = conn.cursor()
-        
-    select_zone = ("select new_id from zone where old_id=%s")
-        
-    cursor.execute(select_zone,(zone,))
-        
-    rows = cursor.fetchall()
-    new_zoneid = ''
-    if not rows:
-            new_zoneid = 'Invalid data'
-    for row in rows:
-            new_zoneid = sr(row[0])
-    
-    conn.commit()
-    cursor.close()
-    conn.close()
-        
-    return new_zoneid
